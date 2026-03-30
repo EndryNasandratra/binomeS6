@@ -55,7 +55,7 @@ http_response_code($httpStatus);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($metaDescription, ENT_QUOTES, 'UTF-8'); ?>">
-    <link rel="stylesheet" href="/assets/css/front.css">
+    <link rel="stylesheet" href="/assets/css/front.css?v=<?php echo (string) filemtime(__DIR__ . '/assets/css/front.css'); ?>">
 </head>
 <body>
     <header class="news-header">
@@ -127,6 +127,10 @@ http_response_code($httpStatus);
                 <p class="headline-band__text">Une maquette FrontOffice orientee presse numerique avec URLs normalisees, titres hierarchises et balises SEO.</p>
             </section>
 
+            <?php if ($contentType === 'home'): ?>
+                <h2 class="section-title">Edition du jour</h2>
+            <?php endif; ?>
+
             <?php if ($contentType === 'section'): ?>
                 <h2 class="section-title">Articles de section</h2>
             <?php endif; ?>
@@ -148,14 +152,34 @@ http_response_code($httpStatus);
                                     <?php echo htmlspecialchars((string) $featured['titre'], ENT_QUOTES, 'UTF-8'); ?>
                                 </a>
                             </h2>
+                            <?php if (!empty($featured['image_principale'])): ?>
+                                <a class="lead-article__image-link" href="/article/<?php echo htmlspecialchars((string) $featured['slug'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <img
+                                        class="lead-article__image"
+                                        src="<?php echo htmlspecialchars((string) $featured['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        alt="<?php echo htmlspecialchars((string) ($featured['image_alt'] ?: $featured['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                        style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;"
+                                    >
+                                </a>
+                            <?php endif; ?>
                             <p class="lead-article__chapeau"><?php echo htmlspecialchars((string) $featured['chapeau'], ENT_QUOTES, 'UTF-8'); ?></p>
                             <a class="read-more" href="/article/<?php echo htmlspecialchars((string) $featured['slug'], ENT_QUOTES, 'UTF-8'); ?>">Lire l'analyse complete</a>
                         </article>
 
                         <aside class="brief-column">
-                            <h3>Dernieres mises a jour</h3>
+                            <h3>En direct</h3>
                             <?php foreach (array_slice($articles, 1, 4) as $item): ?>
                                 <article class="brief-item">
+                                    <?php if (!empty($item['image_principale'])): ?>
+                                        <a class="brief-item__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <img
+                                                class="brief-item__image"
+                                                src="<?php echo htmlspecialchars((string) $item['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                alt="<?php echo htmlspecialchars((string) ($item['image_alt'] ?: $item['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                                style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;"
+                                            >
+                                        </a>
+                                    <?php endif; ?>
                                     <p><?php echo htmlspecialchars((string) $item['section'], ENT_QUOTES, 'UTF-8'); ?></p>
                                     <h4>
                                         <a href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -172,6 +196,16 @@ http_response_code($httpStatus);
                     <section class="grid">
                         <?php foreach (array_slice($articles, 1) as $item): ?>
                             <article class="card">
+                                <?php if (!empty($item['image_principale'])): ?>
+                                    <a class="card__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        <img
+                                            class="card__image"
+                                            src="<?php echo htmlspecialchars((string) $item['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            alt="<?php echo htmlspecialchars((string) ($item['image_alt'] ?: $item['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                            style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;"
+                                        >
+                                    </a>
+                                <?php endif; ?>
                                 <p class="card__section"><?php echo htmlspecialchars((string) $item['section'], ENT_QUOTES, 'UTF-8'); ?></p>
                                 <h3>
                                     <a href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">

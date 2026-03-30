@@ -19,6 +19,10 @@ body {
     background: linear-gradient(180deg, #eceef2 0%, var(--paper) 28%, #f6f2ea 100%);
 }
 
+img {
+    max-width: 100%;
+}
+
 .news-header {
     border-bottom: 1px solid var(--line);
     background: var(--sheet);
@@ -132,6 +136,13 @@ body {
     font-family: "Trebuchet MS", "Segoe UI", sans-serif;
 }
 
+.section-title {
+    margin: 0 0 16px;
+    font-size: clamp(1.2rem, 2.1vw, 1.5rem);
+    color: #0f1e45;
+    letter-spacing: 0.01em;
+}
+
 .lead-layout {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -150,6 +161,26 @@ body {
 
 .lead-article {
     padding: 20px;
+}
+
+.lead-article__image-link,
+.brief-item__image-link,
+.card__image-link {
+    display: block;
+    text-decoration: none;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.lead-article__image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    margin-bottom: 12px;
+    display: block;
 }
 
 .lead-article h2 {
@@ -213,6 +244,16 @@ body {
     font-size: 1rem;
 }
 
+.brief-item__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+    display: block;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -221,6 +262,16 @@ body {
 
 .card {
     padding: 14px;
+}
+
+.card__image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    margin-bottom: 10px;
+    display: block;
 }
 
 .card h3 {
