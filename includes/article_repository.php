@@ -11,7 +11,7 @@ function fetchLatestArticles(int $limit = 6): array
 
     $limit = max(1, min($limit, 30));
     $stmt = $pdo->prepare(
-        'SELECT id, titre, chapeau, slug, section, image_principale, image_alt, meta_title, date_publication
+        'SELECT id, titre, chapeau, corps, slug, section, image_principale, image_alt, meta_title, date_publication
          FROM articles
          ORDER BY date_publication DESC
          LIMIT :limit'
@@ -30,7 +30,7 @@ function fetchArticlesBySection(string $section): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, titre, chapeau, slug, section, image_principale, image_alt, meta_title, date_publication
+        'SELECT id, titre, chapeau, corps, slug, section, image_principale, image_alt, meta_title, date_publication
          FROM articles
          WHERE LOWER(section) = LOWER(:section)
          ORDER BY date_publication DESC'

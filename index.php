@@ -142,6 +142,50 @@ http_response_code($httpStatus);
                 </section>
             <?php else: ?>
                 <?php $featured = $articles[0] ?? null; ?>
+                <?php $briefItems = array_slice($articles, 1, 4); ?>
+                <?php $gridItems = array_slice($articles, 1 + count($briefItems)); ?>
+                <?php
+                $featuredBodyPreview = '';
+                $featuredChapeau = '';
+                if ($featured !== null) {
+                    $featuredChapeau = trim((string) ($featured['chapeau'] ?? ''));
+                    $bodySource = trim((string) ($featured['corps'] ?? ''));
+                    $normalizedChapeau = function_exists('mb_strtolower')
+                        ? mb_strtolower($featuredChapeau, 'UTF-8')
+                        : strtolower($featuredChapeau);
+
+                    if ($bodySource !== '') {
+                        $bodyWithoutMedia = preg_replace('/<img[^>]*>/i', ' ', $bodySource);
+                        $bodyWithoutMedia = preg_replace('/<h[1-6][^>]*>.*?<\/h[1-6]>/is', ' ', (string) $bodyWithoutMedia);
+                        $plainBodyLong = trim(preg_replace('/\s+/', ' ', strip_tags((string) $bodyWithoutMedia)));
+
+                        if ($plainBodyLong !== '') {
+                            $normalizedBodyLong = function_exists('mb_strtolower')
+                                ? mb_strtolower($plainBodyLong, 'UTF-8')
+                                : strtolower($plainBodyLong);
+
+                            if ($normalizedChapeau !== '' && strpos($normalizedBodyLong, $normalizedChapeau) === 0) {
+                                $plainBodyLong = trim((string) (function_exists('mb_substr')
+                                    ? mb_substr($plainBodyLong, function_exists('mb_strlen') ? mb_strlen($featuredChapeau, 'UTF-8') : strlen($featuredChapeau), null, 'UTF-8')
+                                    : substr($plainBodyLong, strlen($featuredChapeau))));
+                            }
+
+                            if ($plainBodyLong !== '') {
+                                $featuredBodyPreview = function_exists('mb_substr')
+                                    ? mb_substr($plainBodyLong, 0, 520, 'UTF-8')
+                                    : substr($plainBodyLong, 0, 520);
+
+                                $bodyLength = function_exists('mb_strlen')
+                                    ? mb_strlen($plainBodyLong, 'UTF-8')
+                                    : strlen($plainBodyLong);
+                                if ($bodyLength > 520) {
+                                    $featuredBodyPreview .= '...';
+                                }
+                            }
+                        }
+                    }
+                }
+                ?>
 
                 <?php if ($featured !== null): ?>
                     <section class="lead-layout">
@@ -162,13 +206,18 @@ http_response_code($httpStatus);
                                     >
                                 </a>
                             <?php endif; ?>
-                            <p class="lead-article__chapeau"><?php echo htmlspecialchars((string) $featured['chapeau'], ENT_QUOTES, 'UTF-8'); ?></p>
+                            <?php if ($featuredChapeau !== ''): ?>
+                                <p class="lead-article__chapeau"><?php echo htmlspecialchars($featuredChapeau, ENT_QUOTES, 'UTF-8'); ?></p>
+                            <?php endif; ?>
+                            <?php if ($featuredBodyPreview !== ''): ?>
+                                <p class="lead-article__body-preview"><?php echo htmlspecialchars($featuredBodyPreview, ENT_QUOTES, 'UTF-8'); ?></p>
+                            <?php endif; ?>
                             <a class="read-more" href="/article/<?php echo htmlspecialchars((string) $featured['slug'], ENT_QUOTES, 'UTF-8'); ?>">Lire l'analyse complete</a>
                         </article>
 
                         <aside class="brief-column">
                             <h3>En direct</h3>
-                            <?php foreach (array_slice($articles, 1, 4) as $item): ?>
+                            <?php foreach ($briefItems as $item): ?>
                                 <article class="brief-item">
                                     <?php if (!empty($item['image_principale'])): ?>
                                         <a class="brief-item__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -192,9 +241,9 @@ http_response_code($httpStatus);
                     </section>
                 <?php endif; ?>
 
-                <?php if (count($articles) > 1): ?>
+                <?php if (!empty($gridItems)): ?>
                     <section class="grid">
-                        <?php foreach (array_slice($articles, 1) as $item): ?>
+                        <?php foreach ($gridItems as $item): ?>
                             <article class="card">
                                 <?php if (!empty($item['image_principale'])): ?>
                                     <a class="card__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">

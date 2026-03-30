@@ -202,7 +202,7 @@ img {
 .article-tag,
 .brief-item p {
     margin: 0;
-    color: var(--headline);
+    color: var(--accent);
     font-size: 0.77rem;
     text-transform: uppercase;
     letter-spacing: 0.09em;
@@ -214,6 +214,23 @@ img {
 .card p {
     margin-top: 0;
     color: var(--muted);
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.lead-article__excerpt {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.65;
+    color: #1f2937;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.lead-article__body-preview {
+    margin-top: 12px;
+    margin-bottom: 0;
+    line-height: 1.75;
+    color: #263242;
+    font-size: 1.03rem;
     font-family: "Trebuchet MS", "Segoe UI", sans-serif;
 }
 
