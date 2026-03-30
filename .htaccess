@@ -1,0 +1,62 @@
+RewriteEngine On
+
+# Compression gzip
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/plain
+	AddOutputFilterByType DEFLATE text/html
+	AddOutputFilterByType DEFLATE text/xml
+	AddOutputFilterByType DEFLATE text/css
+	AddOutputFilterByType DEFLATE application/xml
+	AddOutputFilterByType DEFLATE application/xhtml+xml
+	AddOutputFilterByType DEFLATE application/rss+xml
+	AddOutputFilterByType DEFLATE application/javascript
+	AddOutputFilterByType DEFLATE application/x-javascript
+	AddOutputFilterByType DEFLATE application/json
+	AddOutputFilterByType DEFLATE image/svg+xml
+
+</IfModule>
+
+<IfModule mod_headers.c>
+	# Evite les problemes avec anciens proxys.
+	Header append Vary Accept-Encoding
+</IfModule>
+
+# Cache navigateur
+<IfModule mod_expires.c>
+	ExpiresActive On
+
+	# Pages dynamiques: revalidation rapide
+	ExpiresByType text/html "access plus 0 seconds"
+
+	# Assets statiques: cache long
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType application/javascript "access plus 1 month"
+	ExpiresByType application/x-javascript "access plus 1 month"
+	ExpiresByType image/jpeg "access plus 1 year"
+	ExpiresByType image/jpg "access plus 1 year"
+	ExpiresByType image/png "access plus 1 year"
+	ExpiresByType image/gif "access plus 1 year"
+	ExpiresByType image/webp "access plus 1 year"
+	ExpiresByType image/svg+xml "access plus 1 year"
+	ExpiresByType font/woff2 "access plus 1 year"
+	ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+	<FilesMatch "\.(css|js)$">
+		Header set Cache-Control "public, max-age=2592000"
+	</FilesMatch>
+	<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|woff|woff2)$">
+		Header set Cache-Control "public, max-age=31536000, immutable"
+	</FilesMatch>
+</IfModule>
+
+# Keep direct access to existing files/directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Front routes
+RewriteRule ^$ index.php [L,QSA]
+RewriteRule ^article/([a-zA-Z0-9-]+)/?$ index.php?route=article/$1 [L,QSA]
+RewriteRule ^section/([a-zA-Z0-9-]+)/?$ index.php?route=section/$1 [L,QSA]

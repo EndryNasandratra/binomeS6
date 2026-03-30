@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Service de base de données
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: binome_s6
+      MYSQL_USER: nast
+      MYSQL_PASSWORD: nast1311
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./base.sql:/docker-entrypoint-initdb.d/base.sql
+
+  # Service PHP + Apache
+  app:
+    build: .
+    container_name: php_apache_app
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+  db_data:
