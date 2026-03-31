@@ -11,8 +11,10 @@ function fetchLatestArticles(int $limit = 6): array
 
     $limit = max(1, min($limit, 30));
     $stmt = $pdo->prepare(
-        'SELECT id, titre, chapeau, corps, slug, section, image_principale, image_alt, meta_title, date_publication
-         FROM articles
+        'SELECT a.id, a.titre, a.chapeau, a.corps, a.slug, s.nom AS section, s.slug AS section_slug,
+            a.image_principale, a.image_alt, a.meta_title, a.date_publication
+         FROM articles a
+         INNER JOIN sections s ON s.id = a.section_id
          ORDER BY date_publication DESC
          LIMIT :limit'
     );
@@ -30,12 +32,14 @@ function fetchArticlesBySection(string $section): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, titre, chapeau, corps, slug, section, image_principale, image_alt, meta_title, date_publication
-         FROM articles
-         WHERE LOWER(section) = LOWER(:section)
-         ORDER BY date_publication DESC'
+        'SELECT a.id, a.titre, a.chapeau, a.corps, a.slug, s.nom AS section, s.slug AS section_slug,
+            a.image_principale, a.image_alt, a.meta_title, a.date_publication
+         FROM articles a
+         INNER JOIN sections s ON s.id = a.section_id
+         WHERE s.slug = :section_slug
+         ORDER BY a.date_publication DESC'
     );
-    $stmt->execute(['section' => $section]);
+        $stmt->execute(['section_slug' => strtolower($section)]);
 
     return $stmt->fetchAll();
 }
@@ -48,9 +52,11 @@ function fetchArticleBySlug(string $slug): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, titre, chapeau, corps, slug, section, image_principale, image_alt, meta_title, date_publication
-         FROM articles
-         WHERE slug = :slug
+        'SELECT a.id, a.titre, a.chapeau, a.corps, a.slug, s.nom AS section, s.slug AS section_slug,
+            a.image_principale, a.image_alt, a.meta_title, a.date_publication
+         FROM articles a
+         INNER JOIN sections s ON s.id = a.section_id
+         WHERE a.slug = :slug
          LIMIT 1'
     );
     $stmt->execute(['slug' => $slug]);
@@ -66,8 +72,14 @@ function fetchAvailableSections(): array
         return [];
     }
 
-    $stmt = $pdo->query('SELECT DISTINCT section FROM articles ORDER BY section ASC');
+    $stmt = $pdo->query('SELECT nom, slug FROM sections ORDER BY nom ASC');
     $rows = $stmt->fetchAll();
 
-    return array_map(static fn(array $row): string => (string) $row['section'], $rows);
+    return array_map(
+        static fn(array $row): array => [
+            'name' => (string) $row['nom'],
+            'slug' => (string) $row['slug'],
+        ],
+        $rows
+    );
 }

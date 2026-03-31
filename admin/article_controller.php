@@ -10,9 +10,10 @@ function adminFetchAllArticles(): array
     }
 
     $stmt = $pdo->query(
-        'SELECT id, titre, slug, section, date_publication, updated_at
-         FROM articles
-         ORDER BY date_publication DESC'
+           'SELECT a.id, a.titre, a.slug, a.section_id, s.nom AS section, a.date_publication, a.updated_at
+            FROM articles a
+            INNER JOIN sections s ON s.id = a.section_id
+            ORDER BY a.date_publication DESC'
     );
 
     return $stmt->fetchAll();
@@ -25,7 +26,13 @@ function adminFetchArticleById(int $id): ?array
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM articles WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare(
+        'SELECT a.*, s.nom AS section
+         FROM articles a
+         INNER JOIN sections s ON s.id = a.section_id
+         WHERE a.id = :id
+         LIMIT 1'
+    );
     $stmt->execute(['id' => $id]);
     $article = $stmt->fetch();
 
@@ -41,9 +48,9 @@ function adminCreateArticle(array $data): array
 
     $stmt = $pdo->prepare(
         'INSERT INTO articles
-         (titre, chapeau, corps, image_principale, image_alt, slug, section, meta_title, date_publication)
+            (titre, chapeau, corps, image_principale, image_alt, slug, section_id, meta_title, date_publication)
          VALUES
-         (:titre, :chapeau, :corps, :image_principale, :image_alt, :slug, :section, :meta_title, :date_publication)'
+            (:titre, :chapeau, :corps, :image_principale, :image_alt, :slug, :section_id, :meta_title, :date_publication)'
     );
 
     try {
@@ -70,7 +77,7 @@ function adminUpdateArticle(int $id, array $data): array
              image_principale = :image_principale,
              image_alt = :image_alt,
              slug = :slug,
-             section = :section,
+             section_id = :section_id,
              meta_title = :meta_title,
              date_publication = :date_publication
          WHERE id = :id'
@@ -106,6 +113,102 @@ function adminCountArticles(): int
     $row = $stmt->fetch();
 
     return (int) ($row['total'] ?? 0);
+}
+
+function adminFetchSections(): array
+{
+    $pdo = getPDOConnection();
+    if ($pdo === null) {
+        return [];
+    }
+
+    $stmt = $pdo->query('SELECT id, nom, slug FROM sections ORDER BY nom ASC');
+    return $stmt->fetchAll();
+}
+
+function adminFetchDashboardStats(): array
+{
+    $pdo = getPDOConnection();
+    if ($pdo === null) {
+        return [
+            'total_articles' => 0,
+            'total_sections' => 0,
+            'published_today' => 0,
+            'published_this_week' => 0,
+            'last_publication' => null,
+            'last_update' => null,
+        ];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT
+            (SELECT COUNT(*) FROM articles) AS total_articles,
+            (SELECT COUNT(*) FROM sections) AS total_sections,
+            (SELECT COUNT(*) FROM articles WHERE DATE(date_publication) = CURDATE()) AS published_today,
+            (SELECT COUNT(*) FROM articles WHERE YEARWEEK(date_publication, 1) = YEARWEEK(CURDATE(), 1)) AS published_this_week,
+            (SELECT MAX(date_publication) FROM articles) AS last_publication,
+            (SELECT MAX(updated_at) FROM articles) AS last_update'
+    );
+
+    $row = $stmt->fetch();
+    if (!$row) {
+        return [
+            'total_articles' => 0,
+            'total_sections' => 0,
+            'published_today' => 0,
+            'published_this_week' => 0,
+            'last_publication' => null,
+            'last_update' => null,
+        ];
+    }
+
+    return [
+        'total_articles' => (int) ($row['total_articles'] ?? 0),
+        'total_sections' => (int) ($row['total_sections'] ?? 0),
+        'published_today' => (int) ($row['published_today'] ?? 0),
+        'published_this_week' => (int) ($row['published_this_week'] ?? 0),
+        'last_publication' => $row['last_publication'] ?? null,
+        'last_update' => $row['last_update'] ?? null,
+    ];
+}
+
+function adminFetchSectionDistribution(): array
+{
+    $pdo = getPDOConnection();
+    if ($pdo === null) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT s.nom AS section_name, COUNT(a.id) AS total
+         FROM sections s
+         LEFT JOIN articles a ON a.section_id = s.id
+         GROUP BY s.id, s.nom
+         ORDER BY total DESC, s.nom ASC'
+    );
+
+    return $stmt->fetchAll();
+}
+
+function adminFetchRecentArticles(int $limit = 5): array
+{
+    $pdo = getPDOConnection();
+    if ($pdo === null) {
+        return [];
+    }
+
+    $limit = max(1, min($limit, 20));
+    $stmt = $pdo->prepare(
+        'SELECT a.id, a.titre, a.slug, s.nom AS section, a.date_publication, a.updated_at
+         FROM articles a
+         INNER JOIN sections s ON s.id = a.section_id
+         ORDER BY a.updated_at DESC
+         LIMIT :limit'
+    );
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
 }
 
 function adminBuildUniqueSlug(string $title, ?int $excludeId = null): string

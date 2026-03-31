@@ -108,10 +108,18 @@ body {
 .main {
     grid-area: main;
     padding: 18px;
+    display: flex;
+    justify-content: center;
 }
 
 .container {
+    width: 100%;
     max-width: 1120px;
+}
+
+.dashboard-container .page-title,
+.dashboard-container .card:first-of-type {
+    text-align: center;
 }
 
 .page-title {
@@ -139,7 +147,7 @@ body {
 
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -160,6 +168,11 @@ body {
     display: block;
     margin-top: 4px;
     font-size: 1.45rem;
+}
+
+.kpi--small {
+    font-size: 1rem !important;
+    line-height: 1.35;
 }
 
 table {

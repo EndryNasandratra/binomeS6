@@ -14,14 +14,30 @@ $defaultData = [
     'image_principale' => '',
     'image_alt' => '',
     'slug' => '',
-    'section' => 'International',
+    'section_id' => '',
     'meta_title' => '',
     'date_publication' => date('Y-m-d H:i:s'),
 ];
 
-$articleData = $defaultData;
 $error = '';
 $success = '';
+
+$sections = adminFetchSections();
+if (!empty($sections)) {
+    $defaultSectionId = (int) $sections[0]['id'];
+    foreach ($sections as $section) {
+        if ((string) ($section['slug'] ?? '') === 'international') {
+            $defaultSectionId = (int) $section['id'];
+            break;
+        }
+    }
+    $defaultData['section_id'] = (string) $defaultSectionId;
+}
+if (empty($sections)) {
+    $error = 'Aucune section disponible. Cree d\'abord des sections en base.';
+}
+
+$articleData = $defaultData;
 
 function extractFirstImageFromHtml(string $html): ?string
 {
@@ -48,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $articleData['titre'] = trim($_POST['titre'] ?? '');
     $articleData['chapeau'] = trim($_POST['chapeau'] ?? '');
     $articleData['corps'] = trim($_POST['corps'] ?? '');
-    $articleData['section'] = trim($_POST['section'] ?? '');
+    $articleData['section_id'] = trim($_POST['section_id'] ?? '');
     $articleData['date_publication'] = trim($_POST['date_publication'] ?? '');
 
     if ($articleData['titre'] === '' || $articleData['chapeau'] === '' || $articleData['corps'] === '') {
@@ -64,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'image_principale' => $firstImage,
             'image_alt' => $firstImage ? $articleData['titre'] : null,
             'slug' => $slug,
-            'section' => $articleData['section'] ?: 'International',
+            'section_id' => (int) ($articleData['section_id'] !== '' ? $articleData['section_id'] : ($defaultData['section_id'] ?: 0)),
             'meta_title' => $articleData['titre'],
             'date_publication' => $articleData['date_publication'] ?: date('Y-m-d H:i:s'),
         ];
@@ -142,7 +158,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="grid">
                             <div>
                                 <label for="section">Section</label>
-                                <input id="section" name="section" value="<?php echo htmlspecialchars($articleData['section'], ENT_QUOTES, 'UTF-8'); ?>">
+                                <select id="section" name="section_id" required>
+                                    <?php foreach ($sections as $section): ?>
+                                        <option value="<?php echo (int) $section['id']; ?>" <?php echo ((string) $section['id'] === (string) $articleData['section_id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars((string) $section['nom'], ENT_QUOTES, 'UTF-8'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div>
                                 <label for="date_publication">Date publication (YYYY-MM-DD HH:MM:SS)</label>

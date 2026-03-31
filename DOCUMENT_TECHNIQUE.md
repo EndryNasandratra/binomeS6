@@ -31,6 +31,7 @@
 
 ## 6) Modelisation base
 - Table `users`
+- Table `sections`
 - Table `articles`
 - Fichier SQL: `base.sql`
 

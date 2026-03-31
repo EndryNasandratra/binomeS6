@@ -18,8 +18,8 @@ if ($route === '') {
 } elseif (preg_match('#^section/([a-zA-Z0-9-]+)$#', $route, $matches)) {
     $contentType = 'section';
     $sectionSlug = $matches[1];
-    $sectionName = ucwords(str_replace('-', ' ', $sectionSlug));
-    $articles = fetchArticlesBySection($sectionName);
+    $articles = fetchArticlesBySection($sectionSlug);
+    $sectionName = !empty($articles) ? (string) $articles[0]['section'] : ucwords(str_replace('-', ' ', $sectionSlug));
     $pageTitle = 'Section ' . $sectionName . ' | Actualites Iran';
     $metaDescription = 'Articles de la section ' . $sectionName . ' sur le conflit en Iran.';
     $pageHeading = 'Section: ' . $sectionName;
@@ -72,8 +72,8 @@ http_response_code($httpStatus);
         <nav class="section-nav" aria-label="Navigation des sections">
             <a href="/">Accueil</a>
             <?php foreach ($sections as $section): ?>
-                <a href="/section/<?php echo urlencode(strtolower(str_replace(' ', '-', (string) $section))); ?>">
-                    <?php echo htmlspecialchars((string) $section, ENT_QUOTES, 'UTF-8'); ?>
+                <a href="/section/<?php echo urlencode((string) $section['slug']); ?>">
+                    <?php echo htmlspecialchars((string) $section['name'], ENT_QUOTES, 'UTF-8'); ?>
                 </a>
             <?php endforeach; ?>
         </nav>
