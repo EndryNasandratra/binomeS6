@@ -13,8 +13,48 @@ $articles = [];
 $article = null;
 $httpStatus = 200;
 
+function optimizeImageUrl(string $url, int $width, int $quality = 72): string
+{
+    $host = (string) (parse_url($url, PHP_URL_HOST) ?? '');
+    if (stripos($host, 'images.unsplash.com') === false) {
+        return $url;
+    }
+
+    $queryString = (string) (parse_url($url, PHP_URL_QUERY) ?? '');
+    $params = [];
+    parse_str($queryString, $params);
+
+    $params['auto'] = 'format';
+    $params['fm'] = 'webp';
+    $params['fit'] = 'crop';
+    $params['w'] = max(320, min($width, 1600));
+    $params['q'] = max(50, min($quality, 90));
+
+    $base = strtok($url, '?');
+    if ($base === false || $base === '') {
+        return $url;
+    }
+
+    return $base . '?' . http_build_query($params);
+}
+
+function buildUnsplashSrcSet(string $url, array $widths, int $quality = 68): string
+{
+    $items = [];
+    foreach ($widths as $width) {
+        $w = (int) $width;
+        if ($w <= 0) {
+            continue;
+        }
+
+        $items[] = optimizeImageUrl($url, $w, $quality) . ' ' . $w . 'w';
+    }
+
+    return implode(', ', $items);
+}
+
 if ($route === '') {
-    $articles = fetchLatestArticles(9);
+    $articles = fetchLatestArticles(6);
 } elseif (preg_match('#^section/([a-zA-Z0-9-]+)$#', $route, $matches)) {
     $contentType = 'section';
     $sectionSlug = $matches[1];
@@ -55,6 +95,8 @@ http_response_code($httpStatus);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($metaDescription, ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="dns-prefetch" href="//images.unsplash.com">
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
     <link rel="stylesheet" href="/assets/css/front.css?v=<?php echo (string) filemtime(__DIR__ . '/assets/css/front.css'); ?>">
 </head>
 <body>
@@ -86,8 +128,14 @@ http_response_code($httpStatus);
                 <h2 class="article-title"><?php echo htmlspecialchars((string) $article['titre'], ENT_QUOTES, 'UTF-8'); ?></h2>
                 <?php if (!empty($article['image_principale'])): ?>
                     <img
-                        src="<?php echo htmlspecialchars((string) $article['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                        src="<?php echo htmlspecialchars(optimizeImageUrl((string) $article['image_principale'], 1000, 70), ENT_QUOTES, 'UTF-8'); ?>"
+                        srcset="<?php echo htmlspecialchars(buildUnsplashSrcSet((string) $article['image_principale'], [480, 760, 1000, 1280], 70), ENT_QUOTES, 'UTF-8'); ?>"
+                        sizes="(max-width: 760px) 94vw, (max-width: 1160px) 90vw, 860px"
                         alt="<?php echo htmlspecialchars((string) ($article['image_alt'] ?: $article['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                        width="1000"
+                        height="625"
+                        decoding="async"
+                        fetchpriority="high"
                     >
                 <?php endif; ?>
                 <h3 class="article-standfirst"><?php echo htmlspecialchars((string) $article['chapeau'], ENT_QUOTES, 'UTF-8'); ?></h3>
@@ -200,8 +248,14 @@ http_response_code($httpStatus);
                                 <a class="lead-article__image-link" href="/article/<?php echo htmlspecialchars((string) $featured['slug'], ENT_QUOTES, 'UTF-8'); ?>">
                                     <img
                                         class="lead-article__image"
-                                        src="<?php echo htmlspecialchars((string) $featured['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        src="<?php echo htmlspecialchars(optimizeImageUrl((string) $featured['image_principale'], 960, 66), ENT_QUOTES, 'UTF-8'); ?>"
+                                        srcset="<?php echo htmlspecialchars(buildUnsplashSrcSet((string) $featured['image_principale'], [420, 640, 820, 960, 1200], 66), ENT_QUOTES, 'UTF-8'); ?>"
+                                        sizes="(max-width: 760px) 94vw, (max-width: 1160px) 62vw, 720px"
                                         alt="<?php echo htmlspecialchars((string) ($featured['image_alt'] ?: $featured['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                        width="960"
+                                        height="600"
+                                        decoding="async"
+                                        fetchpriority="high"
                                         style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;"
                                     >
                                 </a>
@@ -223,8 +277,14 @@ http_response_code($httpStatus);
                                         <a class="brief-item__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
                                             <img
                                                 class="brief-item__image"
-                                                src="<?php echo htmlspecialchars((string) $item['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                src="<?php echo htmlspecialchars(optimizeImageUrl((string) $item['image_principale'], 460, 60), ENT_QUOTES, 'UTF-8'); ?>"
+                                                srcset="<?php echo htmlspecialchars(buildUnsplashSrcSet((string) $item['image_principale'], [280, 360, 460, 560], 60), ENT_QUOTES, 'UTF-8'); ?>"
+                                                sizes="(max-width: 760px) 94vw, (max-width: 1160px) 30vw, 320px"
                                                 alt="<?php echo htmlspecialchars((string) ($item['image_alt'] ?: $item['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                                width="560"
+                                                height="315"
+                                                loading="lazy"
+                                                decoding="async"
                                                 style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;"
                                             >
                                         </a>
@@ -249,8 +309,14 @@ http_response_code($httpStatus);
                                     <a class="card__image-link" href="/article/<?php echo htmlspecialchars((string) $item['slug'], ENT_QUOTES, 'UTF-8'); ?>">
                                         <img
                                             class="card__image"
-                                            src="<?php echo htmlspecialchars((string) $item['image_principale'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            src="<?php echo htmlspecialchars(optimizeImageUrl((string) $item['image_principale'], 560, 60), ENT_QUOTES, 'UTF-8'); ?>"
+                                            srcset="<?php echo htmlspecialchars(buildUnsplashSrcSet((string) $item['image_principale'], [300, 420, 560, 700], 60), ENT_QUOTES, 'UTF-8'); ?>"
+                                            sizes="(max-width: 760px) 94vw, (max-width: 1160px) 31vw, 360px"
                                             alt="<?php echo htmlspecialchars((string) ($item['image_alt'] ?: $item['titre']), ENT_QUOTES, 'UTF-8'); ?>"
+                                            width="700"
+                                            height="438"
+                                            loading="lazy"
+                                            decoding="async"
                                             style="display:block;width:100%;max-width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;"
                                         >
                                     </a>
