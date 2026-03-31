@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     type="text"
                     id="username"
                     name="username"
-                    value="<?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?>"
+                    value="admin"
                     autocomplete="username"
                     required
                 >
@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     type="password"
                     id="password"
                     name="password"
+                    value="admin123"
                     autocomplete="current-password"
                     required
                 >

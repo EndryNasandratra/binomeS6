@@ -1,5 +1,5 @@
 # On part d'une image PHP avec Apache intégré
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 # Installation des extensions PHP nécessaires (ex: pdo_mysql)
 RUN docker-php-ext-install pdo pdo_mysql
